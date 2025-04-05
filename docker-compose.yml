@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  fastapi_app:
+    container_name: fastapi_app_sam
+    build: .
+    ports:
+      - "8080:8000"
+    volumes:
+      - .:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
