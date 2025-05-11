@@ -27,25 +27,28 @@ class ModuleAnalitics():
         self.share_winnings = self.number_winner_sessions / self.number_all_sessions
 
 
-    def get_data_for_graphs(self, start_time = None, end_time = None):
+    def get_data_for_graphs(self, start_time=None, end_time=None):
         self.dataset['Окончание КС'] = pd.to_datetime(self.dataset['Окончание КС'])
         df_stats = self.dataset.copy()
+        
+        # Фильтрация по датам
+        if start_time:
+            df_stats = df_stats[df_stats['Окончание КС'] >= pd.to_datetime(start_time)]
+        if end_time:
+            df_stats = df_stats[df_stats['Окончание КС'] <= pd.to_datetime(end_time)]
+
         df_stats['Год-Месяц'] = df_stats['Окончание КС'].dt.to_period('M')
 
-        # Считаем количество уникальных закупок по месяцам
         monthly_all = df_stats[df_stats['Id КС'].isin(self.all_sessions['Id КС'])].drop_duplicates(subset=['Id КС']).groupby('Год-Месяц').size()
         monthly_wins = df_stats[df_stats['Id КС'].isin(self.winner_sessions['Id КС'])].drop_duplicates(subset=['Id КС']).groupby('Год-Месяц').size()
 
-        # Объединяем в один DataFrame
         result_df = pd.DataFrame({
             'Участия': monthly_all,
             'Победы': monthly_wins
         }).fillna(0).reset_index()
 
-        # Преобразуем период в строку
         result_df['Год-Месяц'] = result_df['Год-Месяц'].astype(str)
-        json_result_df = result_df.to_json(orient="records")
-        return json_result_df
+        return result_df.to_json(orient="records")
 
 
 
