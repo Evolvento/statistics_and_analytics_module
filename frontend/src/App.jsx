@@ -167,9 +167,9 @@ const App = () => {
           <div className="filter-group">
             <label>Период оферты</label>
             <div className="date-range">
-              <input type="text" name="offerPeriodFrom" value={filters.offerPeriodFrom} onChange={handleInputChange} placeholder="ДД.ММ.ГГГГ" />
+              <input type="text" name="offerPeriodFrom" value={filters.offerPeriodFrom} onChange={handleInputChange} placeholder="ММ.ДД.ГГГГ" />
               <span>до</span>
-              <input type="text" name="offerPeriodTo" value={filters.offerPeriodTo} onChange={handleInputChange} placeholder="ДД.ММ.ГГГГ" />
+              <input type="text" name="offerPeriodTo" value={filters.offerPeriodTo} onChange={handleInputChange} placeholder="ММ.ДД.ГГГГ" />
             </div>
           </div>
 

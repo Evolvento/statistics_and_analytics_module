@@ -36,10 +36,14 @@ class ModuleAnalitics():
 
 
     def get_participation_wins(self, filters: Optional[FilterModel]):
-        df_stats = self.dataset.copy()
+        df= self.dataset.copy()
+
+        only_win = False
 
         if filters:
             f = filters
+
+            only_win = getattr(f, "only_win", False)
 
             # Даты окончания КС
             if f.date_qs:
@@ -58,15 +62,15 @@ class ModuleAnalitics():
             # Цены
             if f.starting_price:
                 if f.starting_price.get("min"):
-                    df = df[df['Начальная цена'] >= float(f.starting_price["min"])]
+                    df = df[df['Начальная цена КС'] >= float(f.starting_price["min"])]
                 if f.starting_price.get("max"):
-                    df = df[df['Начальная цена'] <= float(f.starting_price["max"])]
+                    df = df[df['Начальная цена КС'] <= float(f.starting_price["max"])]
 
             if f.final_price:
                 if f.final_price.get("min"):
-                    df = df[df['Итоговая цена'] >= float(f.final_price["min"])]
+                    df = df[df['Конечная цена КС (победителя в КС)'] >= float(f.final_price["min"])]
                 if f.final_price.get("max"):
-                    df = df[df['Итоговая цена'] <= float(f.final_price["max"])]
+                    df = df[df['Конечная цена КС (победителя в КС)'] <= float(f.final_price["max"])]
 
             # Списочные поля
             if f.quotation_sessions:
@@ -76,15 +80,21 @@ class ModuleAnalitics():
                 df = df[df['Наименование заказчика'].isin(f.clients)]
 
             if f.kpgz:
-                df = df[df['Код КПГЗ'].isin(f.kpgz)]
+                df = df[df['Наименование КПГЗ'].isin(f.kpgz)]
 
             if f.ste:
                 df = df[df['Наименование СТЕ'].isin(f.ste)]
-                
-        df_stats['Год-Месяц'] = df_stats['Окончание КС'].dt.to_period('M')
 
-        monthly_all = df_stats[df_stats['Id КС'].isin(self.all_sessions['Id КС'])].drop_duplicates(subset=['Id КС']).groupby('Год-Месяц').size()
-        monthly_wins = df_stats[df_stats['Id КС'].isin(self.winner_sessions['Id КС'])].drop_duplicates(subset=['Id КС']).groupby('Год-Месяц').size()
+
+        # Если only_win == True — оставляем только выигрышные КС
+        if only_win:
+            df= df[df['ИНН победителя КС'] == self.selected_inn]
+
+
+        df['Год-Месяц'] = df['Окончание КС'].dt.to_period('M')
+
+        monthly_all = df[df['Id КС'].isin(self.all_sessions['Id КС'])].drop_duplicates(subset=['Id КС']).groupby('Год-Месяц').size()
+        monthly_wins = df[df['Id КС'].isin(self.winner_sessions['Id КС'])].drop_duplicates(subset=['Id КС']).groupby('Год-Месяц').size()
 
         result_df = pd.DataFrame({
             'Участия': monthly_all,
@@ -101,7 +111,7 @@ class ModuleAnalitics():
         if filters:
             f = filters
             if f.kpgz:
-                df = df[df['Код КПГЗ'].isin(f.kpgz)]
+                df = df[df['Наименование КПГЗ'].isin(f.kpgz)]
             if f.clients:
                 df = df[df['Наименование заказчика'].isin(f.clients)]
             if f.quotation_sessions:
@@ -110,14 +120,14 @@ class ModuleAnalitics():
                 df = df[df['Наименование СТЕ'].isin(f.ste)]
             if f.starting_price:
                 if f.starting_price.get("min"):
-                    df = df[df['Начальная цена'] >= float(f.starting_price["min"])]
+                    df = df[df['Начальная цена КС'] >= float(f.starting_price["min"])]
                 if f.starting_price.get("max"):
-                    df = df[df['Начальная цена'] <= float(f.starting_price["max"])]
+                    df = df[df['Начальная цена КС'] <= float(f.starting_price["max"])]
             if f.final_price:
                 if f.final_price.get("min"):
-                    df = df[df['Итоговая цена'] >= float(f.final_price["min"])]
+                    df = df[df['Конечная цена КС (победителя в КС)'] >= float(f.final_price["min"])]
                 if f.final_price.get("max"):
-                    df = df[df['Итоговая цена'] <= float(f.final_price["max"])]
+                    df = df[df['Конечная цена КС (победителя в КС)'] <= float(f.final_price["max"])]
             if f.date_qs:
                 if f.date_qs.get("start"):
                     df = df[df['Окончание КС'] >= pd.to_datetime(f.date_qs["start"])]
